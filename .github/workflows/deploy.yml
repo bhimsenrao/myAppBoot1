@@ -3,7 +3,7 @@ name: Deploy Spring Boot to EC2
 on:
   push:
     branches:
-      - master   # <-- change to your actual branch
+      - master   # change to your actual branch
 
 jobs:
   deploy:
@@ -38,7 +38,21 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            # Ensure app directory exists
             mkdir -p /home/${{ secrets.EC2_USER }}/app
-            pkill -f java || true
+
+            # Kill any old process
+            pkill -f 'myAppBoot1' || true
+
+            # Move into app directory
             cd /home/${{ secrets.EC2_USER }}/app
-            nohup java -jar myAppBoot1-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+
+            # Ensure JAR is executable
+            chmod +x myAppBoot1-0.0.1-SNAPSHOT.jar
+
+            # Start app in background with nohup + disown
+            nohup java -jar myAppBoot1-0.0.1-SNAPSHOT.jar > app.log 2>&1 & disown
+
+            # Wait a few seconds and show logs
+            sleep 5
+            tail -n 20 app.log
