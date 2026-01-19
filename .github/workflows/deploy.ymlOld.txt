@@ -3,7 +3,7 @@ name: Deploy Spring Boot to EC2
 on:
   push:
     branches:
-      - master   # <-- change to your actual branch
+      - master   # change to your actual branch
 
 jobs:
   deploy:
@@ -28,7 +28,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}   # ubuntu or ec2-user
           key: ${{ secrets.EC2_KEY }}
-          source: "target/myAppBoot1-0.0.1-SNAPSHOT.jar"
+          source: "target/*.jar"
           target: "/home/${{ secrets.EC2_USER }}/app"
 
       - name: Run App on EC2
@@ -39,6 +39,12 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             mkdir -p /home/${{ secrets.EC2_USER }}/app
-            pkill -f java || true
-            cd /home/${{ secrets.EC2_USER }}/app
-            nohup java -jar myAppBoot1-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            pkill -f 'myAppBoot1' || true
+            cd /home/${{ secrets.EC2_USER }}/app/target
+            JAR_FILE=$(ls *.jar | head -n 1)
+            echo "Starting $JAR_FILE..."
+            chmod +x $JAR_FILE
+            nohup java -jar $JAR_FILE > ../app.log 2>&1 & disown
+            sleep 5
+            ps -ef | grep java
+            tail -n 20 ../app.log || echo "No logs yet"
