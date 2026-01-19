@@ -28,7 +28,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}   # ubuntu or ec2-user
           key: ${{ secrets.EC2_KEY }}
-          source: "target/myAppBoot1-0.0.1-SNAPSHOT.jar"
+          source: "target/*.jar"
           target: "/home/${{ secrets.EC2_USER }}/app"
 
       - name: Run App on EC2
@@ -48,10 +48,10 @@ jobs:
             cd /home/${{ secrets.EC2_USER }}/app
 
             # Ensure JAR is executable
-            chmod +x myAppBoot1-0.0.1-SNAPSHOT.jar
+            chmod +x *.jar
 
             # Start app in background with nohup + disown
-            nohup java -jar myAppBoot1-0.0.1-SNAPSHOT.jar > app.log 2>&1 & disown
+            nohup java -jar *.jar > app.log 2>&1 & disown
 
             # Wait a few seconds and show logs
             sleep 5
